@@ -1,9 +1,9 @@
 {
     "manifest_version": 2,
-    "name": "Regex Search",
-    "version": "0.1",
+    "name": "Encryption Test",
+    "version": "0.0",
 
-    "description": "Enables regex expression matching in Chrome page search",
+    "description": "A test for openpgp use within chrome plugins",
     "icons": {
         "16": "res/16_icon.png",
         "48": "res/48_icon.png",
@@ -18,9 +18,8 @@
     ],
 
     "content_scripts": [{
-        "js": ["src/jquery-1.12.2.min.js", "src/popup.js", "src/content.js"],
+        "js": ["src/jquery-1.12.2.min.js", "src/popup.js", "src/content.js", "src/openpgp_es5/openpgp.min.js", "src/openpgp_es5/openpgp.worker.min.js"],
         "matches": ["http://*/*", "https://*/*", "<all_urls>"],
-        "all_frames": true,
         "match_about_blank": true
     }],
 
@@ -29,19 +28,8 @@
             "19": "res/19_icon.png",
             "38": "res/38_icon.png"
         },
-        "default_title": "Regex Search",
+        "default_title": "Encryption Test",
         "default_popup": "src/popup.html"
-    },
-
-    "commands": {
-        "next": {
-            "description": "go to next search result"
-        },
-        "prev": {
-            "description": "go to previous search result"
-        },
-        "_execute_browser_action": {
-        }
     },
 
     "author": "Matthew Roseman | mroseman95@gmail.com"
