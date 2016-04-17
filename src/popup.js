@@ -1,6 +1,7 @@
 $(document).ready(function() {
 
     var pubkey, privkey;
+    var asym_key;
 
     console.log("popup.js started");
     openpgp.initWorker({path: "openpgp_es5/openpgp.worker.min.js"});
@@ -8,57 +9,40 @@ $(document).ready(function() {
     openpgp.config.aead_protect = true;
     console.log("openpgp loaded");
 
+    // if the key hasn't been genreated yet
     if (pubkey == null || privkey == null) {
-
-        var options = {
-            userIds: [{name: "matt", email: "mroseman95@gmail.com"}],
-            numBits: "2048",
-            passphrase: "p@ssw0rd"
-        };
-
-        openpgp.generateKey(options).then(function(key) {
+        generate_asym_keys("matt", "p@ssw0rd").then(function(key) {
+            asym_key = key;
             pubkey = key.publicKeyArmored;
-            privkey = key.privateKeyArmored;
         });
+
+        var key = generate_sym_key();
     }
 
     $('#encrypt').click(function() {
         plaintext = $('#plaintext-msg').val(); // the plaintext to encrypt
-        var bitString = Uint8Array.from(plaintext); // bit representation of plaintext 
+
+        var ciphertext = encrypt_sym_message(plaintext, key);
+
+        console.log("symmetric encryption: " + btoa(unescape(encodeURIComponent(ciphertext))));
+
+        var decrypted = decrypt_sym_message(ciphertext, key);
+
+        console.log("symmetric decrypted: " + decrypted);
+
         var encrypted;
-        options = {
-            data: bitString,
-            publicKeys: openpgp.key.readArmored(pubkey).keys,
-            armor: false
-        };
 
-        openpgp.encrypt(options).then(function(ciphertext) {
-            //encrypted = ciphertext.message.write(); // retruned as uint8array
-            encrypted = ciphertext.packets.write();
+        encrypt_asym_message(plaintext, pubkey).then(function(ciphertext) {
+            encrypted = ciphertext.message.packets.write();
+            console.log("asymmetric encryption: " + btoa(unescape(encodeURIComponent(ciphertext.message.packets.write()))));
+            
+            asym_key.key.decrypt("p@ssw0rd");
 
-            console.log("Encrypted Message:" + encrypted);
-
-            $('#plaintext-msg').val(encrypted);
+            decrypt_asym_message(encrypted, asym_key).then(function(plaintext) {
+                console.log("plaintext decrypted: " + plaintext);
+            });
         });
+
 
     });
 });
-
-function generate_keys(user, email, bits, pass) {
-    var temp_key;
-
-    var options = {
-        userIds: [{name: user, email: email}],
-        numBits: bits,
-        passphrase: pass
-    };
-
-    // js will move past this and return nothing
-    openpgp.generateKey(options).then(function(new_key) {
-        temp_key = new_key;
-    });
-
-    // show loading symbol until the keys are generated
-
-    return temp_key;
-}
